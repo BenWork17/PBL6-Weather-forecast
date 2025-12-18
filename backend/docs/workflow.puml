@@ -1,0 +1,88 @@
+@startuml Quy Trình Hệ Thống Dự Báo Thời Tiết
+
+title Quy Trình Hệ Thống Dự Báo Thời Tiết
+
+|Thu Thập Dữ Liệu|
+start
+:Thu thập dữ liệu NASA POWER;
+fork
+  :Lấy dữ liệu cho từng tỉnh;
+  :Định dạng ngày tháng cho API;
+  :Xây dựng URL API với các tham số:
+  - T2M (Nhiệt độ)
+  - QV2M (Độ ẩm)
+  - PS (Áp suất)
+  - WS10M (Tốc độ gió)
+  - PRECTOTCORR (Lượng mưa)
+  - CLRSKY_SFC_SW_DWN (Bức xạ mặt trời);
+  :Gọi API NASA POWER;
+  if (Phản hồi API OK?) then (có)
+    :Xử lý phản hồi API;
+    :Xóa dữ liệu cũ của địa điểm;
+    :Lưu dữ liệu mới vào bảng nasa_power_data;
+    :Xóa dự đoán cũ;
+  else (không)
+    :Ghi log lỗi;
+  endif
+fork again
+  :Đợi 6 giờ;
+  :Lên lịch thu thập tiếp theo;
+end fork
+
+|Dự Đoán Thời Tiết|
+start
+:Tải model đã huấn luyện;
+:Lấy danh sách địa điểm;
+fork
+  :Cho từng địa điểm;
+  :Chuẩn bị dữ liệu đầu vào:
+  - Lấy dữ liệu 2 ngày gần nhất
+  - Chuyển đổi thành mảng numpy
+  - Chuẩn hóa dữ liệu bằng MinMaxScaler;
+  
+  :Dự đoán 7 ngày tiếp theo;
+  repeat
+    :Dự đoán thời tiết ngày tiếp theo;
+    :Chuyển đổi dự đoán về thang đo gốc;
+    :Xác định điều kiện thời tiết:
+    - Nhiệt độ
+    - Độ ẩm
+    - Áp suất
+    - Tốc độ gió
+    - Lượng mưa
+    - Bức xạ mặt trời;
+    
+    :Tính toán trạng thái thời tiết:
+    - Chuyển đổi độ ẩm sang phần trăm
+    - Kiểm tra khoảng nhiệt độ
+    - Kiểm tra mức độ mưa
+    - Kiểm tra tốc độ gió
+    - Kiểm tra mức độ ẩm
+    - Kiểm tra mức áp suất;
+    
+    :Kết hợp các điều kiện thời tiết;
+    :Lưu dự đoán vào cơ sở dữ liệu;
+    :Cập nhật dữ liệu đầu vào cho lần dự đoán tiếp;
+  repeat while (Đã dự đoán 7 ngày?) is (chưa) not (rồi)
+  
+  :Ghi log hoàn thành dự đoán;
+fork again
+  :Xử lý lỗi cho từng địa điểm;
+end fork
+
+|API Endpoint|
+start
+:Nhận yêu cầu dự báo thời tiết;
+:Kiểm tra tham số đầu vào;
+:Truy vấn dữ liệu dự đoán từ cơ sở dữ liệu;
+:Định dạng dữ liệu phản hồi:
+- Nhiệt độ
+- Độ ẩm
+- Áp suất
+- Tốc độ gió
+- Lượng mưa
+- Trạng thái thời tiết
+- Độ tin cậy;
+:Trả về phản hồi JSON;
+
+@enduml 
