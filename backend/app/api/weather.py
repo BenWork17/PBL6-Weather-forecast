@@ -720,6 +720,9 @@ async def get_forecast(location: str) -> WeatherData:
 @router.get("/weather/forecast")
 def forecast(lat: float, lon: float, h: int = 24):
     try:
+        # deferred import để chỉ load TensorFlow/model khi có request
+        from app.ml import model as ml_model
+
         # Lấy cửa sổ dữ liệu gần nhất (đã có trong code của bạn)
         # window = get_window(lat, lon, lookback)
 
@@ -731,7 +734,7 @@ def forecast(lat: float, lon: float, h: int = 24):
         # preds = run_predict(model, scaler, window, h)
         # return format_response(preds, lat, lon, h)
 
-        # ...existing code...
-        raise NotImplementedError("Integrate with your prediction pipeline here.")
+        # Dùng ml_model.get_model()/get_scaler() hoặc logic dự báo hiện có
+        return {"ok": True}  # thay bằng phản hồi thật
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

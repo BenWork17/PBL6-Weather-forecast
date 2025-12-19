@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import weather
 from app.database import engine, Base
-import os  # thêm import
+import os
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -21,7 +21,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _allowed.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,          # ví dụ: ["https://calm-comfort-production.up.railway.app", "http://localhost:3000"]
-    allow_credentials=True,
+    allow_credentials=False,   # đặt False nếu không dùng cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -38,5 +38,5 @@ async def root():
     }
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+def health():
+    return {"status": "ok"}
