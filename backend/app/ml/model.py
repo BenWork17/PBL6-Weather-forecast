@@ -1,14 +1,42 @@
-import tensorflow as tf
+import os
+from functools import lru_cache
+from threading import Lock
 import numpy as np
 import pickle
 from ..config import settings
 from datetime import datetime, timedelta
 
+_model_lock = Lock()
+
+@lru_cache(maxsize=1)
+def get_model():
+    # Giảm log và tắt oneDNN (ổn định số học)
+    os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+    os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+
+    # Import nặng chỉ thực hiện khi cần
+    import tensorflow as tf
+    from tensorflow.keras.models import load_model
+
+    # Đường dẫn model lấy từ ENV hoặc mặc định
+    default_path = os.path.join(os.path.dirname(__file__), "..", "models", "best_model.h5")
+    model_path = os.getenv("MODEL_PATH", default_path)
+
+    # Khóa tránh race khi nhiều request đầu tiên
+    with _model_lock:
+        return load_model(model_path)
+
+@lru_cache(maxsize=1)
+def get_scaler():
+    import joblib, pathlib
+    default_scaler = pathlib.Path(__file__).resolve().parents[1] / "models" / "scaler_strong_fluctuation.pkl"
+    scaler_path = os.getenv("SCALER_PATH", str(default_scaler))
+    return joblib.load(scaler_path)
+
 class WeatherModel:
     def __init__(self):
-        self.model = tf.keras.models.load_model(settings.MODEL_PATH)
-        with open(settings.SCALER_PATH, 'rb') as f:
-            self.scaler_X, self.scaler_y = pickle.load(f)
+        self.model = get_model()
+        self.scaler_X, self.scaler_y = get_scaler()
 
     def prepare_data(self, location_data, historical_data):
         # Prepare features
@@ -76,4 +104,4 @@ class WeatherModel:
             }
             weather_predictions.append(weather_data)
         
-        return weather_predictions 
+        return weather_predictions

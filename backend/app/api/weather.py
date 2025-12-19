@@ -17,6 +17,7 @@ from app.models.location import Location
 from app.services.weather_service import get_weather_data, get_forecast_data
 import random
 import logging
+from app.ml import model as ml_model
 
 # Load biến môi trường từ file .env
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env'))
@@ -715,3 +716,22 @@ async def get_forecast(location: str) -> WeatherData:
         return weather
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during forecast: {str(e)}")
+
+@router.get("/weather/forecast")
+def forecast(lat: float, lon: float, h: int = 24):
+    try:
+        # Lấy cửa sổ dữ liệu gần nhất (đã có trong code của bạn)
+        # window = get_window(lat, lon, lookback)
+
+        # Lazy-load model & scaler ở lần gọi đầu tiên
+        model = ml_model.get_model()
+        scaler = ml_model.get_scaler()
+
+        # Thực hiện chuẩn hóa, dự báo và hậu xử lý
+        # preds = run_predict(model, scaler, window, h)
+        # return format_response(preds, lat, lon, h)
+
+        # ...existing code...
+        raise NotImplementedError("Integrate with your prediction pipeline here.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
