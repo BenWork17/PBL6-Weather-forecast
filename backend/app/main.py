@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import weather
 from app.database import engine, Base
-import os  # <— thêm
+import os  # thêm import
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -20,12 +20,10 @@ ALLOWED_ORIGINS = [o.strip() for o in _allowed.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,          # ví dụ: ["https://your-frontend.up.railway.app", "http://localhost:3000"]
+    allow_origins=ALLOWED_ORIGINS,          # ví dụ: ["https://calm-comfort-production.up.railway.app", "http://localhost:3000"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    # Nếu domain Railway thay đổi, có thể dùng regex:
-    # allow_origin_regex=r"https://.*\.railway\.app$"
 )
 
 # Include routers
