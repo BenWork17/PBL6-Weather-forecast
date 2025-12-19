@@ -18,7 +18,7 @@ export interface TemperatureMapResponse {
 
 export async function getTemperatureMapData(): Promise<TemperatureMapResponse> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL 
     const url = `${apiUrl}/api/weather/temperature-map`
     
     console.log('Fetching temperature data from:', url)

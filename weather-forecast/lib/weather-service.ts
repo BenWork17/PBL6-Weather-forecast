@@ -16,6 +16,12 @@ function calculateUVIndex(solarRadiation: number, hour: number): number {
   return uvIndex;
 }
 
+// Prefer API base from NEXT_PUBLIC_API_URL, fallback to localhost
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '');
+function buildApiUrl(path: string): string {
+  return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
 export async function fetchWeatherData(location: Location): Promise<WeatherData> {
   try {
     if (!location || !location.name) {
@@ -23,7 +29,10 @@ export async function fetchWeatherData(location: Location): Promise<WeatherData>
     }
 
     console.log('Fetching weather for:', location.name);
-    const response = await fetch(`http://localhost:8000/api/weather/forecast/${encodeURIComponent(location.name)}`);
+    const url = buildApiUrl(`/api/weather/forecast/${encodeURIComponent(location.name)}`);
+    console.log('Requesting:', url);
+
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
